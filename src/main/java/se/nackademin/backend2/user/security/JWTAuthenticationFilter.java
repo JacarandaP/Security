@@ -58,6 +58,8 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                             final HttpServletResponse res,
                                             final FilterChain chain,
                                             final Authentication auth) throws IOException {
+        User user = (User) auth.getPrincipal();
+        String token = jwtIssuer.generateToken(user);
 
         /*
             TODO: Uppgift 3
@@ -77,8 +79,8 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             Öppna https://jwt.io/ och pasta in er token
             Kolla på resultatet.
          */
-
-        res.getWriter().write("Du är inloggad!");
+//Alternativ res.getWriter().write(jwt.Issuer.generateToken()user);
+        res.getWriter().write(token);
         res.getWriter().flush();
 
 

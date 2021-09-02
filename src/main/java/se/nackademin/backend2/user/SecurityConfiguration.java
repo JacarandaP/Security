@@ -1,12 +1,15 @@
 package se.nackademin.backend2.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.tomcat.jni.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import se.nackademin.backend2.user.security.JWTAuthenticationFilter;
@@ -41,6 +44,8 @@ class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .cors()
                 .disable()
                 .authorizeRequests()
+                .antMatchers("/user/signup") //eller "user/*"
+                .permitAll()
                 /* TODO: uppgift 1:
                     Testa att skapa en användare genom swagger. Du får ett fel. Endpointen kan inte kommas åt för att
                     spring security har låst ner din app.
@@ -55,6 +60,8 @@ class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     Kolla i loggarna, vi får ett läskigt fel som vi ska se till att lösa i uppgift 2
                  */
                 .antMatchers("/swagger-ui/*", "/swagger-ui.html", "/webjars/**", "/v2/**", "/swagger-resources/**").permitAll()
+                .antMatchers("/admin/*").hasRole("ADMIN")
+                .antMatchers("/customer/*").hasRole("CUSTOMER")
                 /*
                 TODO: Upppgift 4:
                     Arbeta med roller
@@ -117,7 +124,13 @@ class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
                 Du ska få "Du är inloggad!" som svar.
          */
-        auth.userDetailsService((s) -> null);
+        auth.userDetailsService((username) -> userRepo.findById(username).orElseThrow(()-> new UsernameNotFoundException("user not found")))
+                .passwordEncoder(passwordEncoder);//User Details Service with one method. can use as lambda);
+
+        //Alternativ om man implementerar classen istället för lambdas
+        // class MyUserDetailsService implements UserDetailsService {
+       // private final UserRepository userRepository;
+        //MyUserDetailsService(UserRepository userRepository)
     }
 
 }
